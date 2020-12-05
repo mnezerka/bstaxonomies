@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Tag2Loc</title>
+        <script type="text/javascript" src="https://api.mapy.cz/loader.js"></script>
+        <script type="text/javascript">Loader.load();</script>
+        <script type="text/javascript">
+
+            function roundNumber(num, dec) {
+                return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
+            }
+
+            function geokoduj(e, elm) {  /* Voláno při odeslání */
+                var results = document.getElementById("results");
+                results.innerHTML = '';
+
+                JAK.Events.cancelDef(e); /* Zamezit odeslání formuláře */
+                var queries = JAK.gel("query").value.split("\n");
+                for (var i = 0; i < queries.length; i++) {
+                  new SMap.Geocoder(queries[i], odpoved, {count: 1});
+                }
+            }
+
+            function odpoved(geocoder) { /* Odpověď */
+                var vysledky = geocoder.getResults()[0];
+
+                var results = document.getElementById("results");
+                var result = document.createElement("div");
+                results.appendChild(result);
+
+                 if (vysledky.results.length == 0) {
+                    result.innerHTML = vysledky.query + "; not found";
+                 } else {
+                   var item = vysledky.results[0];
+                    result.innerHTML = vysledky.query + "; " + roundNumber(item.coords.y, 7) + "; " + roundNumber(item.coords.x, 7);
+               }
+            }
+
+            window.onload=function(){
+                window.geoResults = "";
+
+                var form = JAK.gel("form");
+                JAK.Events.addListener(form, "submit", geokoduj); /* Při odeslání formuláře pustit geokódování */
+
+                var results = document.getElementById("results");
+                results.innerHTML = '';
+            }
+
+        </script>
+
+    </head>
+    <body id="advanced-geocoding">
+        <h1>Tag2Loc</h1>
+        <form id="form">
+            <p>
+                <textarea id="query" rows="30" cols="50">Chamonix</textarea>
+                <input type="submit" value="Search" />
+            </p>
+        </form>
+        <div id="results">
+        </div>
+    </body>
+</html>
