@@ -1,0 +1,17 @@
+.bstmap {
+    border: 1px solid red;
+}
+
+.bstmap img {
+    max-width: initial;
+}
+
+.bstmap-popup-content a {
+    text-decoration: none;
+}
+
+.entry .entry-content .leaflet-bar a {
+    text-decoration: none;
+}
+
+
