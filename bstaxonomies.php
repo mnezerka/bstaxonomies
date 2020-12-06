@@ -3,7 +3,7 @@
 vim: set expandtab sw=4 ts=4 sts=4 foldmethod=indent:
 Plugin Name: BSTaxonomies
 Description: Wordpress plugin for rendering list of taxonomies
-Version: 1.0
+Version: 1.1
 Author: Michal Nezerka
 Author URI: http://blue.pavoucek.cz
 Text Domain: bstaxonomies
@@ -36,6 +36,10 @@ class BSTaxonomies
         // leaflet full screen control - https://github.com/brunob/leaflet.fullscreen
         wp_enqueue_style('leaflet-fullscreen-css', plugins_url('/js/leaflet.fullscreen-1.6.0/Control.FullScreen.css', __FILE__));
         wp_enqueue_script('leaflet-fullscreen-js', plugins_url('/js/leaflet.fullscreen-1.6.0/Control.FullScreen.js', __FILE__), array('leaflet-js'));
+
+        // leaflet marker clusterer - https://github.com/Leaflet/Leaflet.markercluster
+        wp_enqueue_style('leaflet-mc-css', 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css');
+        wp_enqueue_script('leaflet-mc-js', 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster-src.js');
 
         // needs to be inserted into the footer, it needs to see DOM element for rendering
         wp_enqueue_script('bstaxonomies-map-js', plugins_url('/js/map.js', __FILE__), array('leaflet-js'), null, 1);

@@ -31,16 +31,14 @@ if (el) {
     }).addTo(bstmap);
 
     // add markers
-    let markers = [];
+    var markers = L.markerClusterGroup();
     for (let i = 0; i < params.tags.length; i++) {
         let tagData = params.tags[i];
         let marker = L.marker(tagData.loc);
         marker.bindPopup('<div class="bstmap-popup-content">' + tagData.link + '</div>');
-        markers.push(marker);
+        markers.addLayer(marker)
     }
 
-    let markersGroup = L.featureGroup(markers);
-    markersGroup.addTo(bstmap);
-
-    bstmap.fitBounds(markersGroup.getBounds());
+    bstmap.addLayer(markers);
+    bstmap.fitBounds(markers.getBounds());
 }
