@@ -3,7 +3,7 @@
 vim: set expandtab sw=4 ts=4 sts=4 foldmethod=indent:
 Plugin Name: BSTaxonomies
 Description: Wordpress plugin for rendering list of taxonomies
-Version: 1.2
+Version: 1.3
 Author: Michal Nezerka
 Author URI: http://blue.pavoucek.cz
 Text Domain: bstaxonomies
@@ -306,10 +306,10 @@ class BSTaxonomies
         foreach ($tags as $tag) {
 
             // if we have location for current tag
-            if (array_key_exists($tag->name, $tagLocs)) {
+            if (array_key_exists($tag->name, $tagLocs['locations'])) {
                 $tag_link = get_tag_link($tag->term_id);
                 $result[] = [
-                    'loc' => $tagLocs[$tag->name],
+                    'loc' => $tagLocs['locations'][$tag->name],
                     'link' => '<a href="' . $tag_link . '" title="' . $tag->name . '">' . $tag->name . ' (' . $tag->count . ')</a>',
                     'tag' => $tag->name
                 ];
