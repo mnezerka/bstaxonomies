@@ -3,7 +3,7 @@
 vim: set expandtab sw=4 ts=4 sts=4 foldmethod=indent:
 Plugin Name: BSTaxonomies
 Description: Wordpress plugin for rendering list of taxonomies
-Version: 1.1
+Version: 1.2
 Author: Michal Nezerka
 Author URI: http://blue.pavoucek.cz
 Text Domain: bstaxonomies
@@ -206,18 +206,32 @@ class BSTaxonomies
         // Get the value of the setting we've registered with register_setting()
         $locs = get_option('bstaxonomies_loc');
 
+        // Parse data from scalar option value (long string)
+        $locsParsed = $this->_parseTagLocations($locs);
+
+        echo '<p>Lines are formatted as <code>tag; lat; lon</code>, where lat and lon are float
+              numbers representing location in WGS84 geographical coordinate system. Tags to be
+              ignored can be spcified as single value without coordinates. This is example of
+              line that assigns location to tag Ayna: <code>Ayna; 38.5532769; -2.0715083</code>';
+
+        // render list of tags without location (if such tag exists)
+        if (count($locsParsed['invalid']) > 0) {
+            echo '<p style="color: red;">';
+            echo "Wrongly formatted tags: " . implode(', ', $locsParsed['invalid']);
+            echo '</p>';
+        }
+
         echo '<p>';
         echo '<textarea id="bstaxonomies_loc" name="bstaxonomies_loc" rows="30" cols="50" type="textarea">' .  $locs .  '</textarea>';
         echo '</p>';
-
-        $locsParsed = $this->_parseTagLocations($locs);
 
         // try to match parsed locs with real wp tags
         $tagsWithoutLoc = [];
 
         $tags = get_tags();
         foreach ($tags as $tag) {
-            if (!array_key_exists($tag->name, $locsParsed)) {
+            if (!array_key_exists($tag->name, $locsParsed['locations']) &&
+                !in_array($tag->name, $locsParsed['ignored'])) {
                 $tagsWithoutLoc[] = $tag->name;
             }
         }
@@ -225,9 +239,15 @@ class BSTaxonomies
         // render list of tags without location (if such tag exists)
         if (count($tagsWithoutLoc) > 0) {
             sort($tags);
-            echo '<p><i>Format of line: tag; lat; lon</i></p>';
             echo '<p>';
             echo "Tags without location: " . implode(', ', $tagsWithoutLoc);
+            echo '</p>';
+        }
+
+        // render list of tags without location (if such tag exists)
+        if (count($locsParsed['ignored']) > 0) {
+            echo '<p style="color: gray;">';
+            echo "Ignored tags: " . implode(', ', $locsParsed['ignored']);
             echo '</p>';
         }
     }
@@ -300,30 +320,52 @@ class BSTaxonomies
 
     private function _parseTagLocations($str) {
 
-        $result = [];
+        $result = [
+            'locations' => [],
+            'ignored' => [],
+            'invalid' => []
+        ];
 
         $lines = explode("\n", $str);
 
         foreach ($lines as $line) {
+
+            $line = trim($line);
+
+            // skip empty lines
+            if (mb_strlen($line) == 0) {
+                continue;
+            }
+
+            // split line by delimiter and get tag
             $parts = explode(";", $line);
+            $tag = trim($parts[0]);
 
-            // ignore wrongly formatted lines
-            if (count($parts) != 3) {
+            // check proper formatting of tag name, skip lines with empty tag
+            if (mb_strlen($tag) == 0) {
                 continue;
             }
 
-            // check proper formatting of tag name
-            if (mb_strlen($parts[0]) == 0) {
-                continue;
-            }
+            // check for ignored tags (formated as "tag-name;")
+            if (count($parts) == 1) {
+                $result['ignored'][] = $tag;
 
-            // check proper formatting of lat and lng
-            $parts[1] = (float)$parts[1];
-            $parts[2] = (float)$parts[2];
-            if ($parts[1] == 0 || $parts[2] == 0) {
-                continue;
-            }
+            // check for tag location
+            } elseif (count($parts) == 3) {
 
+                // check proper formatting of lat and lng
+                $parts[1] = (float)$parts[1];
+                $parts[2] = (float)$parts[2];
+                if ($parts[1] == 0 || $parts[2] == 0) {
+                    $result['invalid'][] = $tag;
+                    continue;
+                }
+
+                $result['locations'][$tag] = [$parts[1], $parts[2]];
+
+            } else {
+                $result['invalid'][] = $tag;
+            }
             $result[$parts[0]] = [$parts[1], $parts[2]];
         }
 
